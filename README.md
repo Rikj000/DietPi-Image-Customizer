@@ -1,6 +1,6 @@
 # DietPi Image Customization Script
 
-This script customizes a DietPi image by modifying its configuration files (`dietpi.txt` and optionally `dietpi-wifi.txt`). It supports downloading the image from a URL, verifying its integrity, and repacking it after customization.
+This script customizes a DietPi image by modifying its configuration files (`dietpi.txt` and optionally `dietpi-wifi.txt` and `cmdline.txt`). It supports downloading the image from a URL, verifying its integrity, and repacking it after customization.
 
 ## Usage
 
