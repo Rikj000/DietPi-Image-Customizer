@@ -9,11 +9,11 @@ This script customizes a DietPi image by modifying its configuration files (`die
 ```
 
 ## Options
--h Show the help message and exit.
--t dietpi.txt Path to the dietpi.txt file (required).
--w dietpi-wifi.txt Path to the dietpi-wifi.txt file (optional).
--c cmdline.txt Path to the cmdline.txt file (optional).
--i dietpi.img.xz Path or URL to the dietpi.img.xz file (required).
+-h Show the help message and exit.  
+-t dietpi.txt Path to the dietpi.txt file (required).  
+-w dietpi-wifi.txt Path to the dietpi-wifi.txt file (optional).  
+-c cmdline.txt Path to the cmdline.txt file (optional).  
+-i dietpi.img.xz Path or URL to the dietpi.img.xz file (required).  
 
 ## Example
 ```bash
