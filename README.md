@@ -5,7 +5,7 @@ This script customizes a DietPi image by modifying its configuration files (`die
 ## Usage
 
 ```bash
-./edit_img.sh [-h] [-t dietpi.txt] [-w dietpi-wifi.txt] [-i dietpi.img.xz]
+./edit_img.sh [-h] [-t dietpi.txt] [-w dietpi-wifi.txt] [-c cmdline.txt] [-i dietpi.img.xz]
 ```
 
 ## Options
@@ -17,7 +17,7 @@ This script customizes a DietPi image by modifying its configuration files (`die
 
 ## Example
 ```bash
-./edit_img.sh -t /path/to/dietpi.txt -w /path/to/dietpi-wifi.txt -w /path/to/cmdline.txt -i /path/to/dietpi.img.xz
+./edit_img.sh -t /path/to/dietpi.txt -w /path/to/dietpi-wifi.txt -c /path/to/cmdline.txt -i /path/to/dietpi.img.xz
 ```
 
 [![Demo with URL download](https://asciinema.org/a/NGIFjNhs4suD1DKgbhgTJmwMD.svg)](https://asciinema.org/a/NGIFjNhs4suD1DKgbhgTJmwMD)
