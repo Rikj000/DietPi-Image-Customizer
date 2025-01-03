@@ -2,17 +2,18 @@
 
 # Function to display help
 show_help() {
-  echo "Usage: $0 [-h] [-t dietpi.txt] [-w dietpi-wifi.txt] [-i dietpi.img.xz]"
+  echo "Usage: $0 [-h] [-t dietpi.txt] [-w dietpi-wifi.txt] [-c cmdline.txt] [-i dietpi.img.xz]"
   echo
   echo "Options:"
   echo "  -h                Show this help message and exit"
   echo "  -t dietpi.txt     Path to the dietpi.txt file"
   echo "  -w dietpi-wifi.txt Path to the dietpi-wifi.txt file (optional)"
+  echo "  -c cmdline.txt  Path or URL to the cmdline.txt file (optional)"
   echo "  -i dietpi.img.xz  Path or URL to the dietpi.img.xz file"
 }
 
 # Parse command line options
-while getopts ":ht:w:i:" opt; do
+while getopts ":ht:w:c:i:" opt; do
   case ${opt} in
     h )
       show_help
@@ -23,6 +24,9 @@ while getopts ":ht:w:i:" opt; do
       ;;
     w )
       DIETPI_WIFI_TXT="$OPTARG"
+      ;;
+    c )
+      CMDLINE_TXT="$OPTARG"
       ;;
     i )
       DIETPI_IMG_XZ="$OPTARG"
@@ -50,6 +54,9 @@ fi
 
 # If DIETPI_WIFI_TXT is not provided, set it to an empty string
 DIETPI_WIFI_TXT="${DIETPI_WIFI_TXT:-}"
+
+# If CMDLINE_TXT is not provided, set it to an empty string
+CMDLINE_TXT="${CMDLINE_TXT:-}"
 
 # Unpack the xz archive to the /tmp folder
 TMP_DIR=$(mktemp -d)
@@ -122,6 +129,10 @@ sudo cp "$DIETPI_TXT" "$MOUNT_DIR/dietpi.txt" || cleanup_and_exit "Failed to cop
 
 if [ -n "$DIETPI_WIFI_TXT" ]; then
     sudo cp "$DIETPI_WIFI_TXT" "$MOUNT_DIR/dietpi-wifi.txt" || cleanup_and_exit "Failed to copy dietpi-wifi.txt"
+fi 
+
+if [ -n "$CMDLINE_TXT" ]; then
+    sudo cp "$CMDLINE_TXT" "$MOUNT_DIR/cmdline.txt" || cleanup_and_exit "Failed to copy cmdline.txt"
 fi 
 
 # Unmount the folder
