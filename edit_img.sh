@@ -2,18 +2,20 @@
 
 # Function to display help
 show_help() {
-  echo "Usage: $0 [-h] [-t dietpi.txt] [-w dietpi-wifi.txt] [-c cmdline.txt] [-i dietpi.img.xz]"
+  echo "Usage: $0 [-h] [-t dietpi.txt] [-w dietpi-wifi.txt] [-c cmdline.txt] [-s Automation_Custom_Script.sh] [-p Automation_Custom_PreScript.sh] [-i dietpi.img.xz]"
   echo
   echo "Options:"
-  echo "  -h                Show this help message and exit"
-  echo "  -t dietpi.txt     Path to the dietpi.txt file"
-  echo "  -w dietpi-wifi.txt Path to the dietpi-wifi.txt file (optional)"
-  echo "  -c cmdline.txt  Path or URL to the cmdline.txt file (optional)"
-  echo "  -i dietpi.img.xz  Path or URL to the dietpi.img.xz file"
+  echo "  -h                                    Show this help message and exit"
+  echo "  -t dietpi.txt                         Path to the dietpi.txt file"
+  echo "  -w dietpi-wifi.txt                    Path to the dietpi-wifi.txt file (optional)"
+  echo "  -c cmdline.txt                        Path to the cmdline.txt file (optional)"
+  echo "  -s Automation_Custom_Script.sh        Path to the Automation_Custom_Script.sh file (optional)"
+  echo "  -p Automation_Custom_PreScript.sh     Path to the Automation_Custom_PreScript.sh file (optional)"
+  echo "  -i dietpi.img.xz                      Path or URL to the dietpi.img.xz file"
 }
 
 # Parse command line options
-while getopts ":ht:w:c:i:" opt; do
+while getopts ":ht:w:c:s:p:i:" opt; do
   case ${opt} in
     h )
       show_help
@@ -27,6 +29,12 @@ while getopts ":ht:w:c:i:" opt; do
       ;;
     c )
       CMDLINE_TXT="$OPTARG"
+      ;;
+    s )
+      SCRIPT="$OPTARG"
+      ;;
+    p )
+      PRE_SCRIPT="$OPTARG"
       ;;
     i )
       DIETPI_IMG_XZ="$OPTARG"
@@ -52,11 +60,11 @@ if [ -z "$DIETPI_TXT" ] || [ -z "$DIETPI_IMG_XZ" ]; then
   exit 1
 fi
 
-# If DIETPI_WIFI_TXT is not provided, set it to an empty string
+# Set optional arguments to empty strings, if not provided
 DIETPI_WIFI_TXT="${DIETPI_WIFI_TXT:-}"
-
-# If CMDLINE_TXT is not provided, set it to an empty string
 CMDLINE_TXT="${CMDLINE_TXT:-}"
+SCRIPT="${SCRIPT:-}"
+PRE_SCRIPT="${PRE_SCRIPT:-}"
 
 # Unpack the xz archive to the /tmp folder
 TMP_DIR=$(mktemp -d)
@@ -124,16 +132,30 @@ MOUNT_DIR=$(mktemp -d)
 sudo mount "${LOOP_DEVICE}p1" "$MOUNT_DIR" || cleanup_and_exit "Failed to mount image"
 
 # Copy the txt files to the mounted folder
-print_ok "Copying dietpi config txt files..."
+print_ok "Copying dietpi.txt config file..."
 sudo cp "$DIETPI_TXT" "$MOUNT_DIR/dietpi.txt" || cleanup_and_exit "Failed to copy dietpi.txt"
 
 if [ -n "$DIETPI_WIFI_TXT" ]; then
+    print_ok "Copying dietpi-wifi.txt config file..."
     sudo cp "$DIETPI_WIFI_TXT" "$MOUNT_DIR/dietpi-wifi.txt" || cleanup_and_exit "Failed to copy dietpi-wifi.txt"
 fi 
 
 if [ -n "$CMDLINE_TXT" ]; then
+    print_ok "Copying cmdline.txt config file..."
     sudo cp "$CMDLINE_TXT" "$MOUNT_DIR/cmdline.txt" || cleanup_and_exit "Failed to copy cmdline.txt"
 fi 
+
+if [ -n "$SCRIPT" ]; then
+    print_ok "Copying Automation_Custom_Script.sh script file..."
+    sudo cp "$SCRIPT" "$MOUNT_DIR/Automation_Custom_Script.sh" || \
+        cleanup_and_exit "Failed to copy Automation_Custom_Script.sh"
+fi
+
+if [ -n "$PRE_SCRIPT" ]; then
+    print_ok "Copying Automation_Custom_PreScript.sh script file..."
+    sudo cp "$PRE_SCRIPT" "$MOUNT_DIR/Automation_Custom_PreScript.sh" || \
+        cleanup_and_exit "Failed to copy Automation_Custom_PreScript.sh"
+fi
 
 # Unmount the folder
 print_ok "Unmounting image..."
