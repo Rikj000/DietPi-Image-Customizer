@@ -120,6 +120,11 @@ xz -d -k -c "$DIETPI_IMG_XZ" > "$TMP_DIR/${FILENAME%.xz}" || cleanup_and_exit "F
 print_ok "Mounting image..."
 sudo losetup -f -P "$TMP_DIR/${FILENAME%.xz}" || cleanup_and_exit "Failed to set up loop device"
 LOOP_DEVICE=$(losetup -l | grep "$TMP_DIR/${FILENAME%.xz}" | awk '{print $1}')
+lsblk --raw --output "NAME,MAJ:MIN" --noheadings $LOOP_DEVICE | tail -n +2 | while read dev node; do
+  MAJ=$(echo $node | cut -d: -f1)
+  MIN=$(echo $node | cut -d: -f2)
+  [ ! -e "/dev/$dev" ] &&  mknod "/dev/$dev" b $MAJ $MIN
+done
 MOUNT_DIR=$(mktemp -d)
 sudo mount "${LOOP_DEVICE}p1" "$MOUNT_DIR" || cleanup_and_exit "Failed to mount image"
 

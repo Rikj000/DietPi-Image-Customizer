@@ -41,6 +41,7 @@ This script customizes a DietPi image by modifying its configuration files (`die
 - sudo
 - losetup
 - mount
+- lsblk
 
 ## Error Handling
 The script includes error handling to clean up temporary files and directories if any step fails. It prints error messages in red and success messages in green.
