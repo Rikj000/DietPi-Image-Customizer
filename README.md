@@ -5,15 +5,17 @@ This script customizes a DietPi image by modifying its configuration files (`die
 ## Usage
 
 ```bash
-./edit_img.sh [-h] [-t dietpi.txt] [-w dietpi-wifi.txt] [-c cmdline.txt] [-i dietpi.img.xz]
+./edit_img.sh [-h] [-t dietpi.txt] [-w dietpi-wifi.txt] [-c cmdline.txt] [-s Automation_Custom_Script.sh] [-p Automation_Custom_PreScript.sh] [-i dietpi.img.xz]
 ```
 
 ## Options
--h Show the help message and exit.  
--t dietpi.txt Path to the dietpi.txt file (required).  
--w dietpi-wifi.txt Path to the dietpi-wifi.txt file (optional).  
--c cmdline.txt Path to the cmdline.txt file (optional).  
--i dietpi.img.xz Path or URL to the dietpi.img.xz file (required).  
+-h                                  Show the help message and exit.  
+-t dietpi.txt                       Path to the dietpi.txt file (required).  
+-w dietpi-wifi.txt                  Path to the dietpi-wifi.txt file (optional).  
+-c cmdline.txt                      Path to the cmdline.txt file (optional).  
+-s Automation_Custom_Script.sh      Path to the Automation_Custom_Script.sh file (optional).
+-p Automation_Custom_PreScript.sh   Path to the Automation_Custom_PreScript.sh file (optional).
+-i dietpi.img.xz                    Path or URL to the dietpi.img.xz file (required).  
 
 ## Example
 ```bash
