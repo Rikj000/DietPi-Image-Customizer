@@ -1,0 +1,7 @@
+# Ignore IDE folders + VSC workspace
+**/.idea/**
+**/.vs/**
+**.code-workspace
+# Ignore .img files
+**.img
+**.img.xz
