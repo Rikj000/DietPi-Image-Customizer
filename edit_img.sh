@@ -2,7 +2,7 @@
 
 # Function to display help
 show_help() {
-  echo "Usage: $0 [-h] [-t dietpi.txt] [-w dietpi-wifi.txt] [-c cmdline.txt] [-s Automation_Custom_Script.sh] [-p Automation_Custom_PreScript.sh] [-i dietpi.img.xz]"
+  echo "Usage: $0 [-h] [-t dietpi.txt] [-w dietpi-wifi.txt] [-c cmdline.txt] [-s Automation_Custom_Script.sh] [-p Automation_Custom_PreScript.sh] [-f ./custom-files/] [-i dietpi.img.xz]"
   echo
   echo "Options:"
   echo "  -h                                    Show this help message and exit"
@@ -11,11 +11,12 @@ show_help() {
   echo "  -c cmdline.txt                        Path to the cmdline.txt file (optional)"
   echo "  -s Automation_Custom_Script.sh        Path to the Automation_Custom_Script.sh file (optional)"
   echo "  -p Automation_Custom_PreScript.sh     Path to the Automation_Custom_PreScript.sh file (optional)"
+  echo "  -f ./custom-files/                    Path to the directory containing additional custom files (optional, warning: only +-70Mb of space available in image)"
   echo "  -i dietpi.img.xz                      Path or URL to the dietpi.img.xz file"
 }
 
 # Parse command line options
-while getopts ":ht:w:c:s:p:i:" opt; do
+while getopts ":ht:w:c:s:p:f:i:" opt; do
   case ${opt} in
     h )
       show_help
@@ -35,6 +36,9 @@ while getopts ":ht:w:c:s:p:i:" opt; do
       ;;
     p )
       PRE_SCRIPT="$OPTARG"
+      ;;
+    f )
+      FILES_DIR="$OPTARG"
       ;;
     i )
       DIETPI_IMG_XZ="$OPTARG"
@@ -65,6 +69,7 @@ DIETPI_WIFI_TXT="${DIETPI_WIFI_TXT:-}"
 CMDLINE_TXT="${CMDLINE_TXT:-}"
 SCRIPT="${SCRIPT:-}"
 PRE_SCRIPT="${PRE_SCRIPT:-}"
+FILES_DIR="${FILES_DIR:-}"
 
 # Unpack the xz archive to the /tmp folder
 TMP_DIR=$(mktemp -d)
@@ -73,9 +78,13 @@ CURRENT_DIR=$(pwd)
 # Function to clean up and exit on error
 cleanup_and_exit() {
   echo -e "\e[31mError: $1\e[0m"
-  
-  if [ ! -z "${MOUNT_DIR+x}" ]; then
-    sudo umount "$MOUNT_DIR"
+
+  if [ ! -z "${MOUNT_BOOT_DIR+x}" ]; then
+    sudo umount "$MOUNT_BOOT_DIR"
+  fi
+
+  if [ ! -z "${MOUNT_FS_DIR+x}" ]; then
+    sudo umount "$MOUNT_FS_DIR"
   fi
 
   if [ ! -z "${LOOP_DEVICE+x}" ]; then
@@ -133,38 +142,46 @@ lsblk --raw --output "NAME,MAJ:MIN" --noheadings $LOOP_DEVICE | tail -n +2 | whi
   MIN=$(echo $node | cut -d: -f2)
   [ ! -e "/dev/$dev" ] &&  mknod "/dev/$dev" b $MAJ $MIN
 done
-MOUNT_DIR=$(mktemp -d)
-sudo mount "${LOOP_DEVICE}p1" "$MOUNT_DIR" || cleanup_and_exit "Failed to mount image"
+MOUNT_BOOT_DIR=$(mktemp -d)
+MOUNT_FS_DIR=$(mktemp -d)
+sudo mount "${LOOP_DEVICE}p1" "$MOUNT_BOOT_DIR" || cleanup_and_exit "Failed to mount boot image"
+sudo mount "${LOOP_DEVICE}p2" "$MOUNT_FS_DIR" || cleanup_and_exit "Failed to mount file system image"
 
 # Copy the txt files to the mounted folder
 print_ok "Copying dietpi.txt config file..."
-sudo cp "$DIETPI_TXT" "$MOUNT_DIR/dietpi.txt" || cleanup_and_exit "Failed to copy dietpi.txt"
+sudo cp "$DIETPI_TXT" "$MOUNT_BOOT_DIR/dietpi.txt" || cleanup_and_exit "Failed to copy dietpi.txt"
 
 if [ -n "$DIETPI_WIFI_TXT" ]; then
     print_ok "Copying dietpi-wifi.txt config file..."
-    sudo cp "$DIETPI_WIFI_TXT" "$MOUNT_DIR/dietpi-wifi.txt" || cleanup_and_exit "Failed to copy dietpi-wifi.txt"
-fi 
+    sudo cp "$DIETPI_WIFI_TXT" "$MOUNT_BOOT_DIR/dietpi-wifi.txt" || cleanup_and_exit "Failed to copy dietpi-wifi.txt"
+fi
 
 if [ -n "$CMDLINE_TXT" ]; then
     print_ok "Copying cmdline.txt config file..."
-    sudo cp "$CMDLINE_TXT" "$MOUNT_DIR/cmdline.txt" || cleanup_and_exit "Failed to copy cmdline.txt"
-fi 
+    sudo cp "$CMDLINE_TXT" "$MOUNT_BOOT_DIR/cmdline.txt" || cleanup_and_exit "Failed to copy cmdline.txt"
+fi
 
 if [ -n "$SCRIPT" ]; then
     print_ok "Copying Automation_Custom_Script.sh script file..."
-    sudo cp "$SCRIPT" "$MOUNT_DIR/Automation_Custom_Script.sh" || \
+    sudo cp "$SCRIPT" "$MOUNT_BOOT_DIR/Automation_Custom_Script.sh" || \
         cleanup_and_exit "Failed to copy Automation_Custom_Script.sh"
 fi
 
 if [ -n "$PRE_SCRIPT" ]; then
     print_ok "Copying Automation_Custom_PreScript.sh script file..."
-    sudo cp "$PRE_SCRIPT" "$MOUNT_DIR/Automation_Custom_PreScript.sh" || \
+    sudo cp "$PRE_SCRIPT" "$MOUNT_BOOT_DIR/Automation_Custom_PreScript.sh" || \
         cleanup_and_exit "Failed to copy Automation_Custom_PreScript.sh"
+fi
+
+if [ -n "$FILES_DIR" ]; then
+    print_ok "Copying custom files directory..."
+    sudo cp -r "$FILES_DIR" "$MOUNT_FS_DIR/boot/" || cleanup_and_exit "Failed to copy custom files directory"
 fi
 
 # Unmount the folder
 print_ok "Unmounting image..."
-sudo umount "$MOUNT_DIR" || cleanup_and_exit "Failed to unmount image"
+sudo umount "$MOUNT_BOOT_DIR" || cleanup_and_exit "Failed to unmount boot image"
+sudo umount "$MOUNT_FS_DIR" || cleanup_and_exit "Failed to unmount file system image"
 sudo losetup -d "$LOOP_DEVICE" || cleanup_and_exit "Failed to detach loop device"
 
 # Archive the Disk Image File into a xz archive
